@@ -27,7 +27,7 @@ export default function GlobalLogin({ onLoginSuccess }) {
     try {
       const u = username.trim().toLowerCase();
       const p = password.trim();
-      const validUsernames = ['deepakkumar prajapati', 'deepak', 'deepakkumar', 'admin', 'operator', 'director'];
+      const validUsernames = ['meghalytics', 'deepakkumar prajapati', 'deepak', 'deepakkumar', 'admin', 'operator', 'director'];
       const passHash = await sha256Hex(p.toLowerCase());
 
       if (validUsernames.includes(u) && AUTHORIZED_CREDENTIAL_HASHES.includes(passHash)) {

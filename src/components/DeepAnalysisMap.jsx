@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MapContainer, TileLayer, WMSTileLayer, CircleMarker, Popup, useMap, useMapEvents, Polyline, LayersControl, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, WMSTileLayer, CircleMarker, Popup, useMap, useMapEvents, Polyline, LayersControl, Marker, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useLocationContext } from '../context/LocationContext';
 import { reverseGeocodeAndAnalyze } from '../utils/dynamicLocation';
 import { predictFlood, getFeatureBreakdown } from '../utils/floodML';
+import { 
+  INDIA_BOUNDS, 
+  INDIA_CENTER, 
+  INDIA_DEFAULT_ZOOM, 
+  INDIA_MASK_GEOJSON, 
+  INDIA_BORDER_GEOJSON, 
+  isPointInIndia 
+} from '../data/indiaBoundary';
 
 const days = ['Today', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -87,26 +95,48 @@ function MapUpdater({ center, zoom }) {
 export default function DeepAnalysisMap() {
   const { globalCityData, globalOsmDrainage, isGlobalSearching } = useLocationContext();
   
-  const [mapCenter, setMapCenter] = useState([28.6139, 77.2090]); // Delhi default
-  const [mapZoom, setMapZoom] = useState(11);
+  const [mapCenter, setMapCenter] = useState(INDIA_CENTER); // India center
+  const [mapZoom, setMapZoom] = useState(INDIA_DEFAULT_ZOOM); // Zoom level 5
   // Unified Analysis State
   const [activeAnalysis, setActiveAnalysis] = useState(null);
   const [clickedLatLng, setClickedLatLng] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedDay, setSelectedDay] = useState(0);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [indiaOnlyWarning, setIndiaOnlyWarning] = useState(false);
+  const [isDark, setIsDark] = useState(() => document.documentElement.getAttribute('data-theme') === 'dark');
+
+  // React to theme toggling for seamless mask color adaptation
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.getAttribute('data-theme') === 'dark');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Sync Map view if User uses Global Search Bar
   useEffect(() => {
     if (globalCityData && globalCityData.lat) {
-      setMapCenter([globalCityData.lat, globalCityData.lon]);
-      setMapZoom(13);
-      // Auto-trigger analysis for searched city
-      triggerAnalysis(globalCityData.lat, globalCityData.lon, globalCityData);
+      if (isPointInIndia(globalCityData.lat, globalCityData.lon)) {
+        setMapCenter([globalCityData.lat, globalCityData.lon]);
+        setMapZoom(13);
+        // Auto-trigger analysis for searched city
+        triggerAnalysis(globalCityData.lat, globalCityData.lon, globalCityData);
+      } else {
+        setIndiaOnlyWarning(true);
+        setTimeout(() => setIndiaOnlyWarning(false), 4000);
+      }
     }
   }, [globalCityData]);
 
   const triggerAnalysis = async (lat, lng, preExistingData = null) => {
+    if (!isPointInIndia(lat, lng)) {
+      setIndiaOnlyWarning(true);
+      setTimeout(() => setIndiaOnlyWarning(false), 4000);
+      return;
+    }
+
     setIsAnalyzing(true);
     setPanelOpen(true);
     setClickedLatLng({ lat, lng });
@@ -149,13 +179,18 @@ export default function DeepAnalysisMap() {
       setSelectedDay(0);
     } catch (e) {
       console.error(e);
-      alert("Analysis failed. Try clicking near a valid landmass or settlement.");
+      alert(e.message || "Analysis failed. Try clicking near a valid Indian settlement.");
       setPanelOpen(false);
     }
     setIsAnalyzing(false);
   };
 
   const handleMapClick = (latlng) => {
+    if (!isPointInIndia(latlng.lat, latlng.lng)) {
+      setIndiaOnlyWarning(true);
+      setTimeout(() => setIndiaOnlyWarning(false), 4000);
+      return;
+    }
     triggerAnalysis(latlng.lat, latlng.lng);
   };
 
@@ -181,10 +216,41 @@ export default function DeepAnalysisMap() {
   return (
     <div style={{ position: 'relative', width: '100vw', height: 'calc(100vh - 70px)' }}>
       
+      {/* INDIA-ONLY WARNING TOAST */}
+      {indiaOnlyWarning && (
+        <div style={{
+          position: 'absolute',
+          top: '1.5rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(220, 38, 38, 0.95)',
+          color: '#ffffff',
+          padding: '0.75rem 1.5rem',
+          borderRadius: '50px',
+          zIndex: 2000,
+          boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          fontWeight: 600,
+          fontSize: '0.9rem',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          pointerEvents: 'none'
+        }}>
+          <span style={{ fontSize: '1.2rem' }}>🇮🇳</span>
+          <span>Deep Analysis is exclusively available for India. Please select a location within Indian territory.</span>
+        </div>
+      )}
+
       {/* MAP LAYER */}
       <MapContainer 
         center={mapCenter} 
         zoom={mapZoom} 
+        minZoom={4.5}
+        maxZoom={18}
+        maxBounds={INDIA_BOUNDS}
+        maxBoundsViscosity={1.0}
         style={{ width: '100%', height: '100%' }}
         zoomControl={false}
       >
@@ -227,6 +293,37 @@ export default function DeepAnalysisMap() {
           </LayersControl.BaseLayer>
         </LayersControl>
 
+        {/* NON-INDIA MASK LAYER: Solidly covers foreign countries & non-Indian territories */}
+        <GeoJSON
+          key={`india-mask-${isDark ? 'dark' : 'light'}`}
+          data={INDIA_MASK_GEOJSON}
+          style={{
+            fillColor: isDark ? '#0b132b' : '#f8fafc',
+            fillOpacity: 1.0,
+            stroke: false,
+          }}
+          eventHandlers={{
+            click: (e) => {
+              // Catch and block clicks on foreign territories
+              L.DomEvent.stopPropagation(e);
+              setIndiaOnlyWarning(true);
+              setTimeout(() => setIndiaOnlyWarning(false), 4000);
+            }
+          }}
+        />
+
+        {/* INDIA SOVEREIGN BORDER LINE */}
+        <GeoJSON
+          key="india-border"
+          data={INDIA_BORDER_GEOJSON}
+          style={{
+            color: '#2563eb',
+            weight: 2,
+            opacity: 0.9,
+            fill: false,
+          }}
+          interactive={false}
+        />
 
         {/* The Clicked Probe Marker */}
         {clickedLatLng && (

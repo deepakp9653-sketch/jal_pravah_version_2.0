@@ -1,4 +1,5 @@
 import { bhuvanExtractTerrainData } from './bhuvan-api';
+import { isPointInIndia } from '../data/indiaBoundary';
 
 /**
  * Geocodes an Indian city, fetches its Bhuvan terrain data,
@@ -7,18 +8,23 @@ import { bhuvanExtractTerrainData } from './bhuvan-api';
  * Returns a complete 'districtData' object matching exactly what floodML.js expects.
  */
 export async function searchAndAnalyzeCity(cityName) {
-    // 1. Geocode via OSM Nominatim
+    // 1. Geocode via OSM Nominatim (strictly restricted to India)
     const encodedCity = encodeURIComponent(cityName);
-    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodedCity},India&format=json&limit=1`);
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodedCity}&countrycodes=in&format=json&limit=1`);
     const geoData = await geoRes.json();
     
     if (!geoData || geoData.length === 0) {
-        throw new Error("City not found in India. Please check the spelling or specify the district.");
+        throw new Error("Location not found in India. Deep Analysis is exclusively available for India.");
     }
     
     const location = geoData[0];
     const lat = parseFloat(location.lat);
     const lon = parseFloat(location.lon);
+
+    if (!isPointInIndia(lat, lon)) {
+        throw new Error("Selected city is outside sovereign Indian territory. Deep Analysis is only available within India.");
+    }
+
     const bbox = location.boundingbox; // [south, north, west, east] - Note Nominatim returns string arrays
 
     // 2. Extract terrain & slope via Bhuvan / Open-Elevation fallback
@@ -104,11 +110,19 @@ export async function searchAndAnalyzeCity(cityName) {
 }
 
 export async function reverseGeocodeAndAnalyze(lat, lon) {
+    if (!isPointInIndia(lat, lon)) {
+        throw new Error("Coordinates are outside sovereign Indian territory. Deep Analysis is only available within India.");
+    }
+
     const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
     const geoData = await geoRes.json();
     
     if (!geoData || geoData.error) {
         throw new Error("Could not reverse geocode this location.");
+    }
+
+    if (geoData.address && geoData.address.country_code && geoData.address.country_code !== 'in') {
+        throw new Error("Location belongs to another country. Deep Analysis is exclusively restricted to India.");
     }
     
     // Fallback bounding box if Nominatim doesn't provide a tight one for reverse lookup
