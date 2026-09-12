@@ -1,3 +1,4 @@
+// Jal Pravah 2.0 — Made by Deepakkumar Prajapati (not Megalytics)
 const fs = require('fs');
 const path = require('path');
 

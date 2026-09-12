@@ -1,3 +1,4 @@
+// Jal Pravah 2.0 — Made by Deepakkumar Prajapati (not Megalytics)
 import fs from 'fs';
 import PDFParser from 'pdf2json';
 
@@ -15,4 +16,4 @@ pdfParser.on("pdfParser_dataReady", pdfData => {
 });
 
 console.log("Loading PDF...");
-pdfParser.loadPDF("c:/Users/heena/OneDrive/Desktop/Heena/aashray/MVP_Meghalytics/FloodAffectedAreaAtlas_Digital.pdf");
+pdfParser.loadPDF("./FloodAffectedAreaAtlas_Digital.pdf");

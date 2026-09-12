@@ -88,6 +88,10 @@ export default function HomePage({ alertLevel, setAlertLevel }) {
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Source: FCO 2025, PWD/MCD data</div>
         </div>
       </div>
+
+      <div style={{ textAlign: 'center', marginTop: '2.5rem', padding: '1.5rem 0', color: 'var(--text-muted)', fontSize: '0.85rem', borderTop: '1px solid var(--border)' }}>
+        Jal Pravah 2.0 — Made by <strong>Deepakkumar Prajapati</strong> (not Megalytics)
+      </div>
     </div>
   );
 }

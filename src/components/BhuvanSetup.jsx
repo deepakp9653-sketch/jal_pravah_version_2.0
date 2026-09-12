@@ -13,14 +13,27 @@ export default function BhuvanSetup() {
     setKeys(getBhuvanKeys());
   }, []);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (password === 'Meghalytics') {
-      setIsAuthenticated(true);
-      setError('');
-    } else {
-      setError('Incorrect passcode.');
-      setPassword('');
+    const p = password.trim().toLowerCase();
+    try {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(p));
+      const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      const allowedHashes = [
+        '6f0beb93310552ea244b81e1b2975e404e30b9def450891ce5cb95312fbc21e3',
+        '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
+        '101daa59096156bddb19c0117db0fd3985b7e2632e0f65a325f811bc1660a087',
+        '78dc25307e5de65da72e4200cff879a185acfb2df37a90101b662d73ce10b23b'
+      ];
+      if (allowedHashes.includes(hash)) {
+        setIsAuthenticated(true);
+        setError('');
+      } else {
+        setError('Incorrect passcode.');
+        setPassword('');
+      }
+    } catch {
+      setError('Verification failed.');
     }
   };
 
@@ -50,7 +63,7 @@ export default function BhuvanSetup() {
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
           <input 
             type="password" 
-            placeholder="Passcode" 
+            placeholder="Enter passcode" 
             className="form-input" 
             value={password} 
             onChange={e => setPassword(e.target.value)} 
@@ -59,6 +72,7 @@ export default function BhuvanSetup() {
           {error && <div style={{ color: '#EF4444', fontSize: '0.85rem' }}>{error}</div>}
           <button type="submit" className="btn btn-primary" style={{ padding: '1rem', borderRadius: '12px' }}>Unlock Settings</button>
         </form>
+        <div style={{ marginTop: '2rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Made by <strong>Deepakkumar Prajapati</strong> (not Megalytics)</div>
       </div>
     );
   }

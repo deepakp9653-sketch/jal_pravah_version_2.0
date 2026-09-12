@@ -1,21 +1,10 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { hotspots, riskColors, safeZones } from '../data/hotspots';
+import { DELHI_DISTRICTS_POLYGONS } from '../data/delhiDistrictPolygons';
 
-// Use global Cesium object loaded via CDN in index.html
-const Cesium = window.Cesium;
-
-// Cesium Ion Token
-// Using User provided token
-Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0ZDFmNmMwYy1jNjE3LTRhNDQtYWQyZS0wZmU4MjM0MGM5NzUiLCJpZCI6NDA4NDM0LCJpYXQiOjE3NzQzNjI5ODR9.u1eKLDbrzUMi4gBgbw_hM8QAShsyAV5nsw5c0WMaMhg';
+const CESIUM_ION_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0ZDFmNmMwYy1jNjE3LTRhNDQtYWQyZS0wZmU4MjM0MGM5NzUiLCJpZCI6NDA4NDM0LCJpYXQiOjE3NzQzNjI5ODR9.u1eKLDbrzUMi4gBgbw_hM8QAShsyAV5nsw5c0WMaMhg';
 
 const RISK_HEIGHTS = { critical: 2000, high: 1400, moderate: 900, low: 500 };
-const RISK_CESIUM_COLORS = {
-  critical: Cesium.Color.fromCssColorString('#DC2626').withAlpha(0.85),
-  high: Cesium.Color.fromCssColorString('#F97316').withAlpha(0.85),
-  moderate: Cesium.Color.fromCssColorString('#EAB308').withAlpha(0.85),
-  low: Cesium.Color.fromCssColorString('#22C55E').withAlpha(0.85),
-};
-const SAFE_CESIUM_COLOR = Cesium.Color.fromCssColorString('#10B981').withAlpha(0.9);
 
 const typeLabels = {
   embankment: '🏗️ Embankment',
@@ -62,103 +51,165 @@ export default function FloodMap3D() {
 
   // Initialize CesiumJS viewer
   useEffect(() => {
-    if (!cesiumContainerRef.current || viewerRef.current) return;
+    let checkTimer;
+    let isMounted = true;
 
-    const viewer = new Cesium.Viewer(cesiumContainerRef.current, {
-      terrain: Cesium.Terrain.fromWorldTerrain(),
-      baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        credit: 'Esri World Imagery'
-      })),
-      baseLayerPicker: false,
-      geocoder: false,
-      homeButton: false,
-      sceneModePicker: false,
-      navigationHelpButton: false,
-      animation: false,
-      timeline: false,
-      fullscreenButton: false,
-      selectionIndicator: true,
-      infoBox: false,
-      creditContainer: document.createElement('div'), // hide credits
-      msaaSamples: 4,
-      shadows: false, // Ensure shadows don't darken the view
-      shouldAnimate: true,
-    });
+    function initCesium() {
+      if (!cesiumContainerRef.current || viewerRef.current || !isMounted) return;
 
-    viewerRef.current = viewer;
-
-    // Apply vertical exaggeration
-    viewer.scene.verticalExaggeration = 1.5;
-
-    // Disable solar lighting to prevent pitch-black night views
-    viewer.scene.globe.enableLighting = false;
-    viewer.scene.globe.depthTestAgainstTerrain = true;
-    viewer.scene.fog.enabled = true;
-    viewer.scene.fog.density = 0.0001;
-
-    // Sky atmosphere
-    viewer.scene.skyAtmosphere.hueShift = 0.0;
-    viewer.scene.skyAtmosphere.saturationShift = 0.0;
-    viewer.scene.skyAtmosphere.brightnessShift = 0.0;
-
-    // Add Google Photorealistic 3D Tiles
-    addGoogle3DTiles(viewer);
-
-    // Fly to India
-    viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(78.9629, 20.5937, 4000000),
-      orientation: {
-        heading: Cesium.Math.toRadians(-15),
-        pitch: Cesium.Math.toRadians(-45),
-        roll: 0,
-      },
-      duration: 2,
-      complete: () => setIsLoading(false),
-    });
-
-    // Track camera position
-    viewer.camera.changed.addEventListener(() => {
-      const cartographic = viewer.camera.positionCartographic;
-      setCameraInfo({
-        lat: Cesium.Math.toDegrees(cartographic.latitude),
-        lng: Cesium.Math.toDegrees(cartographic.longitude),
-        alt: (cartographic.height / 1000).toFixed(1),
-        heading: Cesium.Math.toDegrees(viewer.camera.heading).toFixed(0),
-      });
-    });
-
-    // Click handler
-    const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-    handler.setInputAction((click) => {
-      const picked = viewer.scene.pick(click.position);
-      if (Cesium.defined(picked) && picked.id && picked.id._hotspotData) {
-        setSelected(picked.id._hotspotData);
-      } else {
-        setSelected(null);
+      const Cesium = window.Cesium;
+      if (!Cesium) {
+        // Cesium CDN script still loading, retry shortly
+        checkTimer = setTimeout(initCesium, 250);
+        return;
       }
-    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+      try {
+        Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN;
+
+        let terrainProvider;
+        try {
+          terrainProvider = Cesium.Terrain.fromWorldTerrain();
+        } catch (_) {
+          terrainProvider = undefined;
+        }
+
+        const viewer = new Cesium.Viewer(cesiumContainerRef.current, {
+          terrain: terrainProvider,
+          baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            credit: 'Esri World Imagery'
+          })),
+          baseLayerPicker: false,
+          geocoder: false,
+          homeButton: false,
+          sceneModePicker: false,
+          navigationHelpButton: false,
+          animation: false,
+          timeline: false,
+          fullscreenButton: false,
+          selectionIndicator: true,
+          infoBox: false,
+          creditContainer: document.createElement('div'), // hide credits
+          msaaSamples: 4,
+          shadows: false, // Ensure shadows don't darken the view
+          shouldAnimate: true,
+        });
+
+        viewerRef.current = viewer;
+
+        // Apply vertical exaggeration
+        viewer.scene.verticalExaggeration = 1.5;
+
+        // Disable solar lighting to prevent pitch-black night views
+        viewer.scene.globe.enableLighting = false;
+        viewer.scene.globe.depthTestAgainstTerrain = true;
+        viewer.scene.fog.enabled = true;
+        viewer.scene.fog.density = 0.0001;
+
+        // Sky atmosphere
+        if (viewer.scene.skyAtmosphere) {
+          viewer.scene.skyAtmosphere.hueShift = 0.0;
+          viewer.scene.skyAtmosphere.saturationShift = 0.0;
+          viewer.scene.skyAtmosphere.brightnessShift = 0.0;
+        }
+
+        // Add Google 3D Tiles or fallback to OSM buildings
+        add3DTiles(viewer);
+
+        // Fly to India / Delhi region
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(77.2090, 28.6139, 45000),
+          orientation: {
+            heading: Cesium.Math.toRadians(-20),
+            pitch: Cesium.Math.toRadians(-45),
+            roll: 0,
+          },
+          duration: 2,
+          complete: () => {
+            if (isMounted) setIsLoading(false);
+          },
+        });
+
+        // Track camera position
+        viewer.camera.changed.addEventListener(() => {
+          if (!viewer.camera) return;
+          const cartographic = viewer.camera.positionCartographic;
+          if (cartographic && isMounted) {
+            setCameraInfo({
+              lat: Cesium.Math.toDegrees(cartographic.latitude),
+              lng: Cesium.Math.toDegrees(cartographic.longitude),
+              alt: (cartographic.height / 1000).toFixed(1),
+              heading: Cesium.Math.toDegrees(viewer.camera.heading).toFixed(0),
+            });
+          }
+        });
+
+        // Click handler
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        handler.setInputAction((click) => {
+          if (!viewer || viewer.isDestroyed()) return;
+          const picked = viewer.scene.pick(click.position);
+          if (Cesium.defined(picked) && picked.id && picked.id._hotspotData) {
+            setSelected(picked.id._hotspotData);
+          } else {
+            setSelected(null);
+          }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        // Store handler for cleanup
+        viewer._clickHandler = handler;
+      } catch (err) {
+        console.error('Failed to initialize Cesium 3D viewer:', err);
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    initCesium();
 
     return () => {
-      handler.destroy();
+      isMounted = false;
+      if (checkTimer) clearTimeout(checkTimer);
       if (viewerRef.current && !viewerRef.current.isDestroyed()) {
+        if (viewerRef.current._clickHandler) {
+          viewerRef.current._clickHandler.destroy();
+        }
         viewerRef.current.destroy();
       }
       viewerRef.current = null;
     };
   }, []);
 
-  // Add Google 3D Tiles Instead of OSM
-  async function addGoogle3DTiles(viewer) {
+  // Add 3D Tiles (Google Photorealistic or OSM Buildings fallback)
+  async function add3DTiles(viewer) {
+    const Cesium = window.Cesium;
+    if (!Cesium || !viewer || viewer.isDestroyed()) return;
+
     try {
-      const tileset = await Cesium.createGooglePhotorealistic3DTileset();
-      viewer.scene.primitives.add(tileset);
-      tilesetRef.current = tileset;
-      
-      // Keep the default globe visible so Satellite shows through where 3D Tiles lack data
-      viewer.scene.globe.show = true;
+      if (typeof Cesium.createGooglePhotorealistic3DTileset === 'function') {
+        const tileset = await Cesium.createGooglePhotorealistic3DTileset();
+        if (viewer && !viewer.isDestroyed() && viewer.scene && viewer.scene.primitives) {
+          viewer.scene.primitives.add(tileset);
+          tilesetRef.current = tileset;
+          viewer.scene.globe.show = true;
+          return;
+        }
+      }
     } catch (e) {
-      console.warn('Could not load Google 3D Tiles. Ensure the asset is enabled in your Cesium Ion account.', e);
+      console.warn('Google 3D Tiles not accessible on this token. Loading OSM 3D Buildings fallback...', e);
+    }
+
+    // Fallback: OpenStreetMap 3D Buildings
+    try {
+      if (typeof Cesium.createOsmBuildingsAsync === 'function') {
+        const osmTileset = await Cesium.createOsmBuildingsAsync();
+        if (viewer && !viewer.isDestroyed() && viewer.scene && viewer.scene.primitives) {
+          viewer.scene.primitives.add(osmTileset);
+          tilesetRef.current = osmTileset;
+        }
+      }
+    } catch (osmErr) {
+      console.warn('OSM Buildings also unavailable; continuing with base satellite imagery and terrain.', osmErr);
     }
   }
 
@@ -172,17 +223,21 @@ export default function FloodMap3D() {
   // Toggle terrain
   useEffect(() => {
     const viewer = viewerRef.current;
-    if (!viewer) return;
-    if (terrainEnabled) {
-      viewer.scene.setTerrain(Cesium.Terrain.fromWorldTerrain());
-    } else {
-      viewer.scene.setTerrain(new Cesium.Terrain(Cesium.EllipsoidTerrainProvider.fromUrl));
-    }
+    if (!viewer || viewer.isDestroyed()) return;
+    const Cesium = window.Cesium;
+    if (!Cesium) return;
+    try {
+      if (terrainEnabled) {
+        viewer.scene.setTerrain(Cesium.Terrain.fromWorldTerrain());
+      } else {
+        viewer.scene.setTerrain(new Cesium.Terrain(Cesium.EllipsoidTerrainProvider.fromUrl));
+      }
+    } catch (_) {}
   }, [terrainEnabled]);
 
   // Apply terrain exaggeration
   useEffect(() => {
-    if (viewerRef.current) {
+    if (viewerRef.current && !viewerRef.current.isDestroyed()) {
       viewerRef.current.scene.verticalExaggeration = exaggeration;
     }
   }, [exaggeration]);
@@ -190,7 +245,7 @@ export default function FloodMap3D() {
   // Add hotspot entities when filters change
   useEffect(() => {
     const viewer = viewerRef.current;
-    if (!viewer) return;
+    if (!viewer || viewer.isDestroyed()) return;
 
     // Remove old entities
     entitiesRef.current.forEach(e => {
@@ -198,12 +253,23 @@ export default function FloodMap3D() {
     });
     entitiesRef.current = [];
 
+    const Cesium = window.Cesium;
+    if (!Cesium) return;
+
     // Create PinBuilder for elegant map pointers
     const pinBuilder = new Cesium.PinBuilder();
 
+    const hexColors = {
+      critical: '#DC2626',
+      high: '#F97316',
+      moderate: '#EAB308',
+      low: '#22C55E',
+    };
+
     // Hotspot pointers
     filtered.forEach(h => {
-      const pinColor = RISK_CESIUM_COLORS[h.risk] || Cesium.Color.GRAY;
+      const hex = hexColors[h.risk] || '#9CA3AF';
+      const pinColor = Cesium.Color.fromCssColorString(hex).withAlpha(0.85);
       const size = h.risk === 'critical' ? 56 : h.risk === 'high' ? 48 : h.risk === 'moderate' ? 40 : 36;
       
       const canvas = pinBuilder.fromColor(pinColor, size);
@@ -235,7 +301,8 @@ export default function FloodMap3D() {
       entitiesRef.current.push(entity);
     });
 
-    // Safe zones pointers
+    // Safe zones pointers - SAFE_CESIUM_COLOR defined properly
+    const SAFE_CESIUM_COLOR = Cesium.Color.fromCssColorString('#10B981');
     safeZones.forEach(z => {
       const size = 44;
       const canvas = pinBuilder.fromText('✓', SAFE_CESIUM_COLOR, size);
@@ -268,8 +335,6 @@ export default function FloodMap3D() {
     });
 
   }, [filtered]);
-
-import { DELHI_DISTRICTS_POLYGONS } from '../data/delhiDistrictPolygons';
 
   // Toggle marker visibility when simulating
   useEffect(() => {

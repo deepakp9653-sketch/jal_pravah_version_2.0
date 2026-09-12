@@ -115,7 +115,7 @@ const DEFAULT_DISTRICT_DATA = {
 export let ACTIVE_DISTRICT_DATA = JSON.parse(JSON.stringify(DEFAULT_DISTRICT_DATA));
 
 /**
- * Fetches ward-level overrides from Supabase.
+ * Fetches ward-level overrides from Neon PostgreSQL Database.
  * Allows Admin panel updates to instantly affect all AI predictions site-wide.
  */
 export async function refreshMLParams() {
@@ -132,10 +132,10 @@ export async function refreshMLParams() {
           }
         }
       });
-      console.log('JAL PRAVAH ML Engine: Live parameters synced from Supabase.');
+      console.log('JAL PRAVAH ML Engine: Live parameters synced from Neon PostgreSQL.');
     }
   } catch (err) {
-    console.error('Failed to sync ML params from Supabase:', err);
+    console.error('Failed to sync ML params from Neon DB:', err);
   }
 }
 

@@ -30,43 +30,7 @@ const myLocationIcon = L.divIcon({
   iconAnchor: [12, 12]
 });
 
-// India sovereign boundary (simplified polygon — Survey of India specification)
-// Includes full Jammu & Kashmir, Aksai Chin, Arunachal Pradesh
-const INDIA_BOUNDARY = {
-  type: 'Feature',
-  properties: { name: 'India' },
-  geometry: {
-    type: 'Polygon',
-    coordinates: [[
-      [68.18, 23.69], [68.75, 23.96], [69.52, 24.27], [70.05, 24.86],
-      [70.28, 25.72], [70.87, 27.20], [71.10, 27.83], [70.38, 28.02],
-      [69.56, 27.17], [68.77, 24.36], [68.18, 23.69], // Sind border
-      [70.38, 28.02], [71.10, 27.83], [71.90, 28.96], [72.35, 29.83],
-      [73.05, 30.97], [73.73, 31.34], [74.00, 31.65], [73.95, 32.73],
-      [74.30, 32.99], [74.56, 33.23], [74.87, 34.01], [75.76, 34.50],
-      [76.57, 35.49], [77.05, 35.50], [78.04, 35.50], // Northern Kashmir/Aksai Chin
-      [78.04, 35.50], [78.73, 34.65], [78.99, 34.32], [78.93, 33.50],
-      [79.13, 32.50], [80.05, 31.17], [80.42, 30.73], [81.11, 30.18],
-      [81.53, 30.37], [82.15, 30.07], [83.30, 29.46], [84.09, 29.24],
-      [84.48, 29.00], [85.01, 28.64], [85.82, 28.20], [86.00, 27.93],
-      [87.03, 27.83], [87.95, 27.14], [88.12, 27.87], [88.73, 28.09],
-      [88.81, 27.30], [89.59, 28.24], [88.00, 26.37], [88.43, 25.80],
-      [89.36, 26.01], [89.83, 25.29], [92.49, 25.08], [93.03, 25.67],
-      [94.15, 23.85], [95.15, 26.00], [96.57, 28.41], [97.33, 28.26],
-      [97.40, 27.88], [96.17, 27.27], [95.12, 26.57], [95.02, 25.71],
-      [94.59, 25.32], [94.22, 24.02], [93.32, 24.08], [93.08, 22.70],
-      [92.67, 22.15], [92.32, 21.47], [92.18, 21.04], // Myanmar border
-      [90.22, 21.83], [89.10, 21.86], [88.76, 21.65], [88.37, 22.39],
-      [88.05, 22.00], [87.21, 21.54], [86.97, 21.50], [84.19, 21.29],
-      [83.46, 21.63], [82.19, 21.19], [81.03, 21.22], [79.31, 21.58],
-      [78.89, 21.40], [77.06, 20.74], [76.57, 20.45], [75.12, 20.03],
-      [73.84, 19.85], [73.42, 20.64], [72.68, 21.30], [72.88, 20.73],
-      [72.34, 20.24], [72.18, 20.73], [72.02, 21.17], [70.90, 22.09],
-      [69.65, 22.45], [68.51, 23.24], [68.18, 23.69]
-    ]]
-  }
-};
-const indiaBoundaryStyle = { color: '#2563eb', weight: 2.5, opacity: 0.7, fillOpacity: 0.02, dashArray: '5, 5' };
+
 
 function LiveWeatherBoundsController({ weatherCache, setWeatherCache }) {
   const map = useMapEvents({
@@ -281,7 +245,7 @@ export default function FloodMap({ filterRisk, filterType }) {
           <MapController center={mapCenter} zoom={mapZoom} />
           <LiveWeatherBoundsController weatherCache={weatherCache} setWeatherCache={setWeatherCache} />
           <ZoomControl position="topright" />
-          <GeoJSON data={INDIA_BOUNDARY} style={() => indiaBoundaryStyle} />
+
           <LayersControl position="topright">
             <LayersControl.BaseLayer checked name="🇮🇳 Bhuvan Vector (ISRO)">
               <WMSTileLayer
@@ -360,19 +324,7 @@ export default function FloodMap({ filterRisk, filterType }) {
             );
           })}
           
-          {/* Dynamically Extracted OSM Drainage */}
-          {(globalOsmDrainage || []).map(way => (
-            <Polyline
-              key={way.id}
-              positions={way.coordinates}
-              pathOptions={{ color: '#60A5FA', weight: 4, opacity: 0.8 }}
-            >
-              <Popup>
-                <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>OSM Drainage Infrastructure</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Type: {way.tags?.waterway || 'drain'}</div>
-              </Popup>
-            </Polyline>
-          ))}
+
           
           {filteredSafeZones.map(z => (
             <CircleMarker

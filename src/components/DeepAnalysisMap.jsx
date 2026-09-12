@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap, useMapEvents, Polyline, LayersControl, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, WMSTileLayer, CircleMarker, Popup, useMap, useMapEvents, Polyline, LayersControl, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useLocationContext } from '../context/LocationContext';
@@ -227,14 +227,6 @@ export default function DeepAnalysisMap() {
           </LayersControl.BaseLayer>
         </LayersControl>
 
-        {/* Global/Extracted OSM Drainage Lines */}
-        {(activeAnalysis?.districtData?.drainageFeatures || globalOsmDrainage || []).map(way => (
-          <Polyline
-            key={way.id}
-            positions={way.coordinates}
-            pathOptions={{ color: '#60A5FA', weight: 3, opacity: 0.8 }}
-          />
-        ))}
 
         {/* The Clicked Probe Marker */}
         {clickedLatLng && (

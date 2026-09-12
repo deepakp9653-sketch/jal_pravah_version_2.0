@@ -1,5 +1,7 @@
 {
-  "name": "mvp-meghalytics",
+  "name": "jal-pravah",
+  "author": "Deepakkumar Prajapati",
+  "description": "Jal Pravah 2.0 — AI-Powered Urban Flood Hazard Evaluation & Intelligence Platform made by Deepakkumar Prajapati (not Megalytics)",
   "private": true,
   "homepage": "https://deepakp9653-sketch.github.io/jal_pravah_endgame/",
   "version": "0.0.0",
@@ -19,6 +21,7 @@
     "@deck.gl/layers": "^9.2.11",
     "@deck.gl/mapbox": "^9.2.11",
     "@deck.gl/react": "^9.2.11",
+    "@neondatabase/serverless": "^1.1.0",
     "@supabase/supabase-js": "^2.99.3",
     "@vapi-ai/web": "^2.5.2",
     "leaflet": "^1.9.4",

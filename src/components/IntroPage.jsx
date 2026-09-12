@@ -59,7 +59,8 @@ export default function IntroPage({ onStart }) {
       </div>
       
       <div className="intro-footer">
-        Strictly for use by Authorized Government Personnel & Mayors
+        <div>Strictly for use by Authorized Government Personnel & Mayors</div>
+        <div style={{ marginTop: '0.4rem', opacity: 0.85, fontSize: '0.8rem' }}>Made by <strong>Deepakkumar Prajapati</strong> (not Megalytics)</div>
       </div>
     </div>
   );

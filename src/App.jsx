@@ -11,12 +11,13 @@ import AlertBanner from './components/AlertBanner';
 import GlobalLogin from './components/GlobalLogin';
 import BhuvanSetup from './components/BhuvanSetup';
 import GlobalSearchBar from './components/GlobalSearchBar';
+import ErrorBoundary from './components/ErrorBoundary';
 import { LocationProvider } from './context/LocationContext';
 import { refreshMLParams } from './utils/floodML';
 
 export default function App() {
-  const [showApp, setShowApp] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [showApp, setShowApp] = useState(() => localStorage.getItem('jp_started') === 'true');
+  const [isAuthorized, setIsAuthorized] = useState(() => localStorage.getItem('jp_authorized') === 'true');
   const [menuOpen, setMenuOpen] = useState(false);
   const [alertLevel, setAlertLevel] = useState('moderate');
   const [theme, setTheme] = useState('light');
@@ -27,15 +28,29 @@ export default function App() {
 
   // Sync Supabase ML parameters on app load
   useEffect(() => {
-    refreshMLParams();
+    try {
+      refreshMLParams();
+    } catch (e) {
+      console.warn('Could not sync ML params:', e);
+    }
   }, []);
 
+  const handleStart = () => {
+    localStorage.setItem('jp_started', 'true');
+    setShowApp(true);
+  };
+
+  const handleLoginSuccess = () => {
+    localStorage.setItem('jp_authorized', 'true');
+    setIsAuthorized(true);
+  };
+
   if (!showApp) {
-    return <IntroPage onStart={() => setShowApp(true)} />;
+    return <IntroPage onStart={handleStart} />;
   }
 
   if (!isAuthorized) {
-    return <GlobalLogin onLoginSuccess={() => setIsAuthorized(true)} />;
+    return <GlobalLogin onLoginSuccess={handleLoginSuccess} />;
   }
 
   return (
@@ -83,15 +98,32 @@ export default function App() {
       </nav>
 
       <div className={`app-container ${theme}`} style={{ paddingTop: '0' }}>
-        <Routes>
-          <Route path="/" element={<HomePage alertLevel={alertLevel} setAlertLevel={setAlertLevel} />} />
-          <Route path="/3d-map" element={<FloodMap3D />} />
-          <Route path="/analysis" element={<DeepAnalysisMap />} />
-          <Route path="/history" element={<HistoricalData />} />
-          <Route path="/my-ward" element={<AdminPanel />} />
-          <Route path="/bhuvan-setup" element={<BhuvanSetup />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<HomePage alertLevel={alertLevel} setAlertLevel={setAlertLevel} />} />
+            <Route path="/3d-map" element={<FloodMap3D />} />
+            <Route path="/analysis" element={<DeepAnalysisMap />} />
+            <Route path="/history" element={<HistoricalData />} />
+            <Route path="/my-ward" element={<AdminPanel />} />
+            <Route path="/bhuvan-setup" element={<BhuvanSetup />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ErrorBoundary>
+
+        <footer style={{
+          textAlign: 'center',
+          padding: '1.25rem 1rem',
+          fontSize: '0.82rem',
+          color: 'var(--text-muted)',
+          borderTop: '1px solid var(--border)',
+          marginTop: '2rem',
+          background: 'rgba(0, 0, 0, 0.12)'
+        }}>
+          <div><strong>Jal Pravah 2.0</strong> — Urban Flood Intelligence & Hazard Evaluation System</div>
+          <div style={{ marginTop: '0.35rem' }}>
+            Made by <strong style={{ color: 'var(--primary-light)' }}>Deepakkumar Prajapati</strong> (not Megalytics)
+          </div>
+        </footer>
       </div>
       </Router>
     </LocationProvider>
