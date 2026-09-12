@@ -90,7 +90,7 @@ export default function HomePage({ alertLevel, setAlertLevel }) {
       </div>
 
       <div style={{ textAlign: 'center', marginTop: '2.5rem', padding: '1.5rem 0', color: 'var(--text-muted)', fontSize: '0.85rem', borderTop: '1px solid var(--border)' }}>
-        Jal Pravah 2.0 — Made by <strong>Deepakkumar Prajapati</strong> (not Megalytics)
+        Jal Pravah 2.0 — Urban Flood Hazard Evaluation & Intelligence Platform
       </div>
     </div>
   );

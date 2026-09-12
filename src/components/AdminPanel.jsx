@@ -223,7 +223,6 @@ export default function AdminPanel() {
           </button>
         </form>
         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '1.5rem' }}>Authorised MCD personnel only. 250 wards available.</p>
-        <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Made by <strong>Deepakkumar Prajapati</strong> (not Megalytics)</div>
       </div>
     </div>
   );

@@ -13,7 +13,7 @@
 
 ## 📌 Executive Overview
 
-**Jal Pravah 2.0 (जल प्रवाह)** is an advanced, AI-powered national flood intelligence and urban flood hazard evaluation platform made and engineered by **Deepakkumar Prajapati** (and not Megalytics). Built specifically with a high-resolution focus on the National Capital Territory (NCT) of Delhi and multi-state flood vulnerabilities across India, the platform bridges the gap between raw meteorological/satellite data, ground-level municipal infrastructure, and citizen disaster response.
+**Jal Pravah 2.0 (जल प्रवाह)** is an advanced, AI-powered national flood intelligence and urban flood hazard evaluation platform. Built specifically with a high-resolution focus on the National Capital Territory (NCT) of Delhi and multi-state flood vulnerabilities across India, the platform bridges the gap between raw meteorological/satellite data, ground-level municipal infrastructure, and citizen disaster response.
 
 By harmonizing **Central Water Commission (CWC)** hydrological benchmarks, **Delhi Flood Control Order (FCO 2025)** drainage records, **ISRO Bhuvan** satellite Land Use/Land Cover (LULC) and Digital Elevation Models (DEM), **Open-Meteo** live rainfall telemetry, **CesiumJS 3D geospatial simulation**, and **Google Gemini Generative AI**, Jal Pravah delivers hyper-local predictive flood analytics and actionable mitigation strategies for all **250 Municipal Corporation of Delhi (MCD) wards**.
 
@@ -238,7 +238,7 @@ A score above **70** reflects robust preparedness, **45–70** requires active m
 
 ## 👥 Authors & Acknowledgments
 
-- **Deepakkumar Prajapati** — Lead Creator, System Architect, Geospatial Engineer & ML Model Developer (Made by Deepakkumar Prajapati, not Megalytics).
+- **Deepakkumar Prajapati** — System Architecture, Geospatial Engineering, and Machine Learning.
 - **National Remote Sensing Centre (NRSC / ISRO)** for Bhuvan Geoportal spatial datasets.
 - **Central Water Commission (CWC)** & **Delhi Irrigation and Flood Control Department (I&FC)** for historical flood data and FCO records.
 - **Open-Meteo** for high-resolution meteorological forecast APIs.

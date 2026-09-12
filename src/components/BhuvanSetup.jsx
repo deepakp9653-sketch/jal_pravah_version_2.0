@@ -72,7 +72,6 @@ export default function BhuvanSetup() {
           {error && <div style={{ color: '#EF4444', fontSize: '0.85rem' }}>{error}</div>}
           <button type="submit" className="btn btn-primary" style={{ padding: '1rem', borderRadius: '12px' }}>Unlock Settings</button>
         </form>
-        <div style={{ marginTop: '2rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Made by <strong>Deepakkumar Prajapati</strong> (not Megalytics)</div>
       </div>
     );
   }

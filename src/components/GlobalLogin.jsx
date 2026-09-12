@@ -98,8 +98,8 @@ export default function GlobalLogin({ onLoginSuccess }) {
           </button>
         </form>
 
-        <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-          Made by <strong>Deepakkumar Prajapati</strong> (not Megalytics)
+        <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+          Jal Pravah 2.0 Command Center
         </div>
 
       </div>

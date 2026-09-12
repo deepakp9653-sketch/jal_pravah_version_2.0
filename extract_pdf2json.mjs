@@ -1,4 +1,4 @@
-// Jal Pravah 2.0 — Made by Deepakkumar Prajapati (not Megalytics)
+// Jal Pravah 2.0
 import fs from 'fs';
 import PDFParser from 'pdf2json';
 

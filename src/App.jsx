@@ -120,9 +120,6 @@ export default function App() {
           background: 'rgba(0, 0, 0, 0.12)'
         }}>
           <div><strong>Jal Pravah 2.0</strong> — Urban Flood Intelligence & Hazard Evaluation System</div>
-          <div style={{ marginTop: '0.35rem' }}>
-            Made by <strong style={{ color: 'var(--primary-light)' }}>Deepakkumar Prajapati</strong> (not Megalytics)
-          </div>
         </footer>
       </div>
       </Router>
