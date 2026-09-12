@@ -8,17 +8,19 @@
     <title>Jal Pravah — Delhi Flood Intelligence System</title>
     <meta name="theme-color" content="#1E40AF" />
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
-    <script src="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Cesium.js"></script>
-    <script type="module" crossorigin src="/jal_pravah_endgame/assets/index-B6MUCQOk.js"></script>
-    <link rel="stylesheet" crossorigin href="/jal_pravah_endgame/assets/index-Db6esoqS.css">
+    <script defer src="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Cesium.js"></script>
+    <script type="module" crossorigin src="/jal_pravah_version_2.0/assets/index-CRsHi8wX.js"></script>
+    <link rel="stylesheet" crossorigin href="/jal_pravah_version_2.0/assets/index-PJaxxKmT.css">
   </head>
   <body>
     <div id="root"></div>
     <script type="text/javascript">
       function googleTranslateElementInit() {
-        new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+        if (window.google && window.google.translate) {
+          new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+        }
       }
     </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script defer type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </body>
 </html>
