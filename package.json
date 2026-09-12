@@ -3,7 +3,7 @@
   "author": "Deepakkumar Prajapati",
   "description": "Jal Pravah 2.0 — AI-Powered Urban Flood Hazard Evaluation & Intelligence Platform",
   "private": true,
-  "homepage": "https://deepakp9653-sketch.github.io/jal_pravah_endgame/",
+  "homepage": "https://deepakp9653-sketch.github.io/jal_pravah_version_2.0/",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist --repo https://github.com/deepakp9653-sketch/jal_pravah_endgame.git"
+    "deploy": "gh-pages -d dist --repo https://github.com/deepakp9653-sketch/jal_pravah_version_2.0.git"
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "^9.2.11",
